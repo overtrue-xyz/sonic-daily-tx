@@ -2,6 +2,8 @@
 
 <hr>
 
+Official website: <https://odyssey.sonic.game/?join=yMexAs>
+
 ### ⭐💻 Feel free to star this repository and help development by pull request ~
 
 <hr>
@@ -22,30 +24,23 @@
 
 - Clone this repo
 
-```
-git clone https://github.com/nhaidaar/sonic-daily-tx
+```bash
+git clone https://github.com/overtrue-xyz/sonic-daily-tx
 cd sonic-daily-tx
 ```
 
 - Install requirements
 
-```
+```bash
 npm install
 ```
 
-- Put your private key in `private.txt`
+- Configure your 2Captcha key and wallet private key in `.env`:
 
-- Put your 2captcha key in `index.js` line 8
-
-```
-const captchaKey = 'INSERT_YOUR_2CAPTCHA_KEY_HERE';
+```bash
+cp .env.example .env
 ```
 
-- If you want to use telegram bot as notification, put your bot token and chat_id in `index.js` line 296, 297
-
-```
-const token = 'INSERT_YOUR_TELEGRAM_BOT_TOKEN_HERE';
-const chatid = 'INSERT_YOUR_TELEGRAM_BOT_CHATID_HERE';
-```
+- Open `.env` file and put your 2Captcha key and wallet private key
 
 - Run script using `node index.js`
