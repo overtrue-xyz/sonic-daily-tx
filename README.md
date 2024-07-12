@@ -43,4 +43,8 @@ cp .env.example .env
 
 - Open `.env` file and put your 2Captcha key and wallet private key
 
-- Run script using `node index.js`
+- Run script using
+
+```bash
+node index.js
+```
