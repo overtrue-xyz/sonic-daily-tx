@@ -66,80 +66,6 @@ const delay = (seconds) => {
     })
 }
 
-const twocaptchaTurnstile = (sitekey, pageurl) => new Promise(async (resolve) => {
-    try {
-        const getToken = await fetch(`https://2captcha.com/in.php?key=${CAPTCHA_KEY}&method=turnstile&sitekey=${sitekey}&pageurl=${pageurl}&json=1`, {
-            method: 'GET',
-        })
-            .then(res => res.text())
-            .then(res => {
-                if (res == 'ERROR_WRONG_USER_KEY' || res == 'ERROR_ZERO_BALANCE') {
-                    return resolve(res)
-                } else {
-                    return res.split('|')
-                }
-            })
-
-        if (getToken[0] != 'OK') {
-            resolve('FAILED_GETTING_TOKEN')
-        }
-
-        const task = getToken[1]
-
-        for (let i = 0; i < 60; i++) {
-            const token = await fetch(
-                `https://2captcha.com/res.php?key=${CAPTCHA_KEY}&action=get&id=${task}&json=1`
-            ).then(res => res.json())
-
-            if (token.status == 1) {
-                resolve(token)
-                break
-            }
-            await delay(2)
-        }
-    } catch (error) {
-        resolve('FAILED_GETTING_TOKEN')
-    }
-})
-
-const claimFaucet = (address) => new Promise(async (resolve) => {
-    let success = false
-
-    while (!success) {
-        const bearer = await twocaptchaTurnstile('0x4AAAAAAAc6HG1RMG_8EHSC', 'https://faucet.sonic.game/#/')
-        if (bearer == 'ERROR_WRONG_USER_KEY' || bearer == 'ERROR_ZERO_BALANCE' || bearer == 'FAILED_GETTING_TOKEN') {
-            success = true
-            resolve(`Failed claim, ${bearer}`)
-        }
-
-        try {
-            const res = await fetch(`https://faucet-api.sonic.game/airdrop/${address}/1/${bearer.request}`, {
-                headers: {
-                    "Accept": "application/json, text/plain, */*",
-                    "Content-Type": "application/json",
-                    "Accept-Language": "en-US,en;q=0.9,id;q=0.8",
-                    "Dnt": "1",
-                    "Origin": "https://faucet.sonic.game",
-                    "Priority": "u=1, i",
-                    "Referer": "https://faucet.sonic.game/",
-                    "User-Agent": bearer.useragent,
-                    "sec-ch-ua-mobile": "?0",
-                    "sec-ch-ua-platform": "Windows",
-                }
-            }).then(res => res.json())
-
-            if (res.status == 'ok') {
-                success = true
-                resolve(`Successfully claim faucet 1 SOL!`)
-            } else {
-                console.error(`Failed to claim, ${res.error}`)
-            }
-        } catch (error) {
-            console.error('Failed to claim, retrying...', error)
-        }
-    }
-})
-
 const getLoginToken = (keyPair) => new Promise(async (resolve) => {
     let success = false
     while (!success) {
@@ -375,6 +301,28 @@ Status       : Getting user token...`
         const initialInfo = await getUserInfo(token)
         let info = initialInfo
 
+        // CHECK IN TASK
+        twisters.put(`${publicKey}`, {
+            text: ` === ACCOUNT ${(index + 1)} ===
+Address      : ${publicKey}
+Points       : ${info.ring}
+Mystery Box  : ${info.ring_monitor}
+Status       : Try to daily check in...`
+        })
+
+        const checkin = await dailyCheckin(keypairs[index], token)
+
+        info = await getUserInfo(token)
+
+        twisters.put(`${publicKey}`, {
+            text: ` === ACCOUNT ${(index + 1)} ===
+Address      : ${publicKey}
+Points       : ${info.ring}
+Mystery Box  : ${info.ring_monitor}
+Status       : ${checkin}`
+        })
+        await delay(delayBetweenRequests)
+
         twisters.put(`${publicKey}`, {
             text: ` === ACCOUNT ${(index + 1)} ===
 Address      : ${publicKey}
@@ -382,26 +330,6 @@ Points       : ${info.ring}
 Mystery Box  : ${info.ring_monitor}
 Status       : -`
         })
-
-        // CLAIM FAUCET
-        if (CLAIM_FAUCET) {
-            twisters.put(`${publicKey}`, {
-                text: ` === ACCOUNT ${(index + 1)} ===
-Address      : ${publicKey}
-Points       : ${info.ring}
-Mystery Box  : ${info.ring_monitor}
-Status       : Trying to claim faucet...`
-            })
-            const faucetStatus = await claimFaucet(keypairs[index].publicKey.toBase58())
-            twisters.put(`${publicKey}`, {
-                text: ` === ACCOUNT ${(index + 1)} ===
-Address      : ${publicKey}
-Points       : ${info.ring}
-Mystery Box  : ${info.ring_monitor}
-Status       : ${faucetStatus}`
-            })
-            await delay(delayBetweenRequests)
-        }
 
         // SENDING SOL
         for (const [i, address] of randomAddresses.entries()) {
@@ -439,25 +367,6 @@ Status       : [${(i + 1)}/${randomAddresses.length}] Failed to sent ${amountToS
         }
 
         token = await getLoginToken(keypairs[index])
-
-        // CHECK IN TASK
-        twisters.put(`${publicKey}`, {
-            text: ` === ACCOUNT ${(index + 1)} ===
-Address      : ${publicKey}
-Points       : ${info.ring}
-Mystery Box  : ${info.ring_monitor}
-Status       : Try to daily check in...`
-        })
-        const checkin = await dailyCheckin(keypairs[index], token)
-        info = await getUserInfo(token)
-        twisters.put(`${publicKey}`, {
-            text: ` === ACCOUNT ${(index + 1)} ===
-Address      : ${publicKey}
-Points       : ${info.ring}
-Mystery Box  : ${info.ring_monitor}
-Status       : ${checkin}`
-        })
-        await delay(delayBetweenRequests)
 
         // CLAIM MILESTONES
         twisters.put(`${publicKey}`, {

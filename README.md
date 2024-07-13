@@ -10,7 +10,6 @@ Official website: <https://odyssey.sonic.game/?join=yMexAs>
 
 ## Features
 
-- **Claim 1 SOL Faucet** : Need 2Captcha key.
 - **Generate Random Addresses** : 100 Addresses by default.
 - **Send SOL** : 0.001 SOL by default.
 - **Transaction Delay**: 5 seconds by default.
@@ -41,10 +40,16 @@ npm install
 cp .env.example .env
 ```
 
-- Open `.env` file and put your 2Captcha key and wallet private key
+- Open `.env` file and fill the wallet private key `PRIVATE_KEY`.
 
 - Run script using
 
 ```bash
 node index.js
 ```
+
+## Cliam Faucet
+
+You must claim the faucet manually, the script will only help you to generate addresses and send transactions.
+
+claim the faucet: <https://faucet.sonic.game/#/>
