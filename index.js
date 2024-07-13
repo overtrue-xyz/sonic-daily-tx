@@ -6,8 +6,6 @@ const nacl = require("tweetnacl")
 
 require('dotenv').config()
 
-const CAPTCHA_KEY = process.env.CAPTCHA_KEY
-const CLAIM_FAUCET = process.env.CLAIM_FAUCET === 'true'
 const OPEN_BOX = process.env.OPEN_BOX === 'true'
 const TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN
 const TELEGRAM_BOT_CHATID = process.env.TELEGRAM_BOT_CHATID
@@ -171,8 +169,12 @@ const dailyMilestone = (auth, stage) => new Promise(async (resolve) => {
             if (data.data) {
                 success = true
                 resolve(`Successfully to claim milestone ${stage}.`)
+            } else {
+                console.error('Failed to claim milestone, retrying...', data)
             }
-        } catch (e) { }
+        } catch (e) {
+            console.error('Failed to claim milestone, retrying...', e)
+        }
     }
 })
 
@@ -362,7 +364,7 @@ Mystery Box  : ${info.ring_monitor}
 Status       : [${(i + 1)}/${randomAddresses.length}] Failed to sent ${amountToSend} SOL to ${address}`
                 })
 
-                await delay(delayBetweenRequests)
+                await delay(delayBetweenRequests + (Math.floor(Math.random() * 120) + 1))
             }
         }
 
@@ -411,7 +413,8 @@ Points       : ${info.ring}
 Mystery Box  : ${info.ring_monitor}
 Status       : [${(i + 1)}/${totalBox}] You got ${openedBox} points!`
                 })
-                await delay(delayBetweenRequests)
+
+                await delay(delayBetweenRequests + (Math.floor(Math.random() * 120) + 1))
             }
 
             info = await getUserInfo(token)
